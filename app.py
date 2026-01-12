@@ -133,7 +133,7 @@ with col_b:
 
 # --- VISUALIZACIONES MEJORADAS ---
 st.divider()
-st.subheader("📈 Visualizaciones con Detalle")
+st.subheader("Visualizaciones")
 
 tab1, tab2, tab3 = st.tabs(["Ventas vs Precio", "Curva de Optimización", "Histórico Temporal"])
 
@@ -194,4 +194,5 @@ with tab3:
     st.pyplot(fig3)
 
 if st.checkbox("Mostrar datos crudos"):
+
     st.write(df_p)
