@@ -87,53 +87,56 @@ col4.metric("Ventas Totales (Pzs)", f"{df_p['Units_Sold'].sum():,.0f}")
 st.divider()
 st.subheader("Simulación de Optimización")
 
-X = df_p[["price", "week_sin", "week_cos"]]
-y = df_p["Units_Sold"]
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+with st.spinner('Analizando patrones de demanda y ejecutando motores de optimización...'):
 
-models = {
-    "Regresión Lineal": LinearRegression(),
-    "Random Forest": RandomForestRegressor(random_state=42),
-    "XGBoost": XGBRegressor(random_state=42)
-}
 
-best_r2, best_model, best_name = -np.inf, None, ""
-for name, model in models.items():
-    model.fit(X_scaled, y)
-    r2 = r2_score(y, model.predict(X_scaled))
-    if r2 > best_r2:
-        best_r2, best_model, best_name = r2, model, name
+    X = df_p[["price", "week_sin", "week_cos"]]
+    y = df_p["Units_Sold"]
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
 
-st.write(f"Mejor modelo: **{best_name}** (R²: {best_r2:.3f})")
+    models = {
+        "Regresión Lineal": LinearRegression(),
+        "Random Forest": RandomForestRegressor(random_state=42),
+        "XGBoost": XGBRegressor(random_state=42)
+    }
 
-# Simulación
-prix_range = np.linspace(df_p["price"].min() * 0.8, df_p["price"].max() * 1.2, 50)
-next_week = (df_p["Week"].max() + 1) % 52
-simulacion = []
+    best_r2, best_model, best_name = -np.inf, None, ""
+    for name, model in models.items():
+        model.fit(X_scaled, y)
+        r2 = r2_score(y, model.predict(X_scaled))
+        if r2 > best_r2:
+            best_r2, best_model, best_name = r2, model, name
 
-for p in prix_range:
-    X_opt = pd.DataFrame({
-        "price": [p],
-        "week_sin": [np.sin(2 * np.pi * next_week / 52)],
-        "week_cos": [np.cos(2 * np.pi * next_week / 52)]
-    })
-    X_opt_scaled = scaler.transform(X_opt)
-    units_pred = max(0, best_model.predict(X_opt_scaled)[0])
-    simulacion.append({"Precio": p, "Ventas": units_pred, "Ingreso": p * units_pred})
+    st.write(f"Mejor modelo: **{best_name}** (R²: {best_r2:.3f})")
 
-df_sim = pd.DataFrame(simulacion)
-opt_row = df_sim.loc[df_sim["Ingreso"].idxmax()]
+    # Simulación
+    prix_range = np.linspace(df_p["price"].min() * 0.8, df_p["price"].max() * 1.2, 50)
+    next_week = (df_p["Week"].max() + 1) % 52
+    simulacion = []
 
-col_a, col_b = st.columns(2)
-with col_a:
-    st.success(f"**Precio Óptimo: ${opt_row['Precio']:,.2f}**")
-with col_b:
-    st.info(f"**Ingreso Estimado: ${opt_row['Ingreso']:,.2f}**")
+    for p in prix_range:
+        X_opt = pd.DataFrame({
+            "price": [p],
+            "week_sin": [np.sin(2 * np.pi * next_week / 52)],
+            "week_cos": [np.cos(2 * np.pi * next_week / 52)]
+        })
+        X_opt_scaled = scaler.transform(X_opt)
+        units_pred = max(0, best_model.predict(X_opt_scaled)[0])
+        simulacion.append({"Precio": p, "Ventas": units_pred, "Ingreso": p * units_pred})
+
+    df_sim = pd.DataFrame(simulacion)
+    opt_row = df_sim.loc[df_sim["Ingreso"].idxmax()]
+
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.success(f"**Precio Óptimo: ${opt_row['Precio']:,.2f}**")
+    with col_b:
+        st.info(f"**Ingreso Estimado: ${opt_row['Ingreso']:,.2f}**")
 
 # --- VISUALIZACIONES MEJORADAS ---
 st.divider()
-st.subheader("Visualizaciones")
+st.subheader("📈 Visualizaciones con Detalle")
 
 tab1, tab2, tab3 = st.tabs(["Ventas vs Precio", "Curva de Optimización", "Histórico Temporal"])
 
@@ -194,5 +197,4 @@ with tab3:
     st.pyplot(fig3)
 
 if st.checkbox("Mostrar datos crudos"):
-
     st.write(df_p)
