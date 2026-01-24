@@ -202,7 +202,8 @@ plt.rcParams.update({
 })
 
 with tab1:
-    fig1, ax1 = plt.subplots(figsize=(12, 6))
+    #fig1, ax1 = plt.subplots(figsize=(12, 6))
+    fig1, ax1 = plt.subplots(figsize=(8, 4))
     
     sns.regplot(
         data=df_p, x="price", y="Units_Sold", ax=ax1, 
@@ -292,4 +293,5 @@ with tab3:
     st.pyplot(fig3)
 
 if st.checkbox("Show raw data"):
+
     st.write(df_p)
